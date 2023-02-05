@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<head>
+	<script type="module" src="index.js" defer>
+	</script>
+	<style>
+		body,
+		html {
+			margin: 0;
+			padding: 0;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		main {
+			background-color: darkslategray;
+			height: 100vh;
+			width: 100vw;
+			padding: 10px;
+		}
+
+		canvas {
+			width: 100%;
+			height: 100%;
+			border: 1px solid white;
+			object-fit: contain;
+			padding: 10px;
+			outline: none;
+		}
+	</style>
+</head>
+
+<body>
+	<main>
+		<canvas tabindex="0" onMouseDown="onMouseDown(event)" onMouseUp="onMouseUp(event)"
+			onMouseMove="onMouseMove(event)" onKeyUp="onKeyUp(event)" onKeyDown="onKeyDown(event)"
+			ref="canvasRef(event)">
+		</canvas>
+
+	</main>
+</body>
