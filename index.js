@@ -50,95 +50,98 @@ let selected = null;
 
 //
 
-Object.assign(window, {
-	onKeyDown(e) {
-		if (e.key === "Control") {
-			ctrlKey = true;
-		}
-		if (e.key === "Alt") {
-			altKey = true;
-		}
-		if (selected) {
-			if (e.key === "Backspace") {
-				selected.text = selected.text.slice(0, -1);
-			} else if (e.key === "Escape") {
-				selected = undefined;
-			} else if (e.key === "Delete") {
-				deleted.push(
-					selected.parent.children.splice(
-						selected.parent.children.indexOf(selected),
-						1
-					)[0]
-				);
-			} else if (e.key === "Enter" && e.shiftKey) {
-				selected.children.push({
-					x: selected.x + 30,
-					y: selected.y + 30,
-					text: "",
-					parent: selected,
-					children: [],
-				});
-				selected = selected.children.at(-1);
-			} else if (ctrlKey && e.key === "z") {
-				const n = deleted.pop();
-				if (n) n.parent.children.push(n);
-			} else if (e.key.length === 1) {
-				selected.text += e.key;
-			}
-		} else if (altKey && e.key === "s") {
-			zoomOut();
-		} else if (altKey && e.key === "g") {
-			zoomIn();
-		}
-		drawMap();
-	},
-	onKeyUp(e) {
-		if (e.key === "Control") {
-			ctrlKey = false;
-		} else if (e.key === "Alt") {
-			altKey = false;
-		}
-	},
-	findNested(node, f) {
-		if (f(node)) return node;
-		if (node.children) {
-			for (const c of node.children) {
-				const res = findNested(c, f);
-				if (res) return res;
-			}
-		}
-	},
-	onMouseUp() {
-		held = undefined;
-		drawMap();
-	},
-	onMouseDown(e) {
-		const { x: mx, y: my } = getMousePos(canvas, e);
-		for (const node of map) {
-			held = findNested(node, (node) =>
-				inRectangle(mx, my, node.r.x, node.r.y, node.r.w, node.r.h)
+document.addEventListener("keydown", (e) => {
+	if (e.key === "Control") {
+		ctrlKey = true;
+	}
+	if (e.key === "Alt") {
+		altKey = true;
+	}
+	if (selected) {
+		if (e.key === "Backspace") {
+			selected.text = selected.text.slice(0, -1);
+		} else if (e.key === "Escape") {
+			selected = undefined;
+		} else if (e.key === "Delete") {
+			deleted.push(
+				selected.parent.children.splice(
+					selected.parent.children.indexOf(selected),
+					1
+				)[0]
 			);
-			selected = held;
+		} else if (e.key === "Enter" && e.shiftKey) {
+			selected.children.push({
+				x: selected.x + 30,
+				y: selected.y + 30,
+				text: "",
+				parent: selected,
+				children: [],
+			});
+			selected = selected.children.at(-1);
+		} else if (ctrlKey && e.key === "z") {
+			const n = deleted.pop();
+			if (n) n.parent.children.push(n);
+		} else if (e.key.length === 1) {
+			selected.text += e.key;
+		}
+	} else if (altKey && e.key === "s") {
+		zoomOut();
+	} else if (altKey && e.key === "g") {
+		zoomIn();
+	}
+	drawMap();
+});
+
+document.addEventListener("keyup", (e) => {
+	if (e.key === "Control") {
+		ctrlKey = false;
+	} else if (e.key === "Alt") {
+		altKey = false;
+	}
+});
+
+document.addEventListener("mouseup", (e) => {
+	held = undefined;
+	drawMap();
+});
+
+document.addEventListener("mousedown", (e) => {
+	const { x: mx, y: my } = getMousePos(canvas, e);
+	for (const node of map) {
+		held = findNested(node, (node) =>
+			inRectangle(mx, my, node.r.x, node.r.y, node.r.w, node.r.h)
+		);
+		selected = held;
+	}
+	drawMap();
+});
+
+document.addEventListener("mousemove", (e) => {
+	if (held) {
+		if (ctrlKey) {
+			forEachNested(held, (n) => {
+				n.x += e.movementX;
+				n.y += e.movementY;
+			});
+		} else {
+			held.x += e.movementX;
+			held.y += e.movementY;
 		}
 		drawMap();
-	},
-	onMouseMove(e) {
-		if (held) {
-			if (ctrlKey) {
-				forEachNested(held, (n) => {
-					n.x += e.movementX;
-					n.y += e.movementY;
-				});
-			} else {
-				held.x += e.movementX;
-				held.y += e.movementY;
-			}
-			drawMap();
-		}
 	}
 });
 
 //
+
+function findNested(node, f) {
+	if (f(node)) return node;
+	if (node.children) {
+		for (const c of node.children) {
+			const res = findNested(c, f);
+			if (res) return res;
+		}
+	}
+}
 
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
